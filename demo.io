@@ -1,15 +1,15 @@
-/* doFile("argparse.io") */
-
 parser := ArgParser clone
 parser setDescription("sample argument parser")
 
-parser addArgument("-v", true, "enable verbose mode")
-parser addArgument("--reverse", true, "reverse mode")
-parser addArgument("-h", "--help", true, "print usage")
-parser addArgument("-o", "--output", "output filename")
-parser addArgument("name", "input filename")
+# parser setOptionPrefix("/", "/")
+parser addBoolOption("v", "enable verbose mode")
+parser addBoolOption("reverse", "reverse mode")
+parser addBoolOption("h", "help", "print usage")
+parser addOption("o", "output", "output filename")
+parser addNumericOption("c", "repetition count")
+parser addArgument("filename", "input filename")
 
 parser printUsage
 
-values := parser parseArgs
-values foreach(name, val, "#{name}: #{val}" interpolate println)
+args := parser parseArgs
+args foreach(name, val, "#{name}: #{val}" interpolate println)
