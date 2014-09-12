@@ -1,28 +1,5 @@
 #!/usr/bin/env io
 
-# Grammar:
-# cmdline = { opt } { arg }
-# arg = [\w_]+
-# opt = short | long
-# short = '-' \w [ \w+ ]
-# long = '-' '-' \w+ [ \w+ ]
-#
-#   -v              1 param
-#   -v --verbose    2 param
-#   --verbose       1 param
-#   name            1 param
-
-# last := call evalArgAt(-1)
-# count := call argCount
-#
-# --long, help                  2
-# --long, isbool, help          3
-# -short, help                  2
-# -short, isbool, help          3
-# -short, --long, help          3
-# -short, --long, isbool, help  4
-# name, help                    2
-
 ArgParser := Object clone
 ArgParser do (
 
@@ -31,13 +8,26 @@ ArgParser do (
     longPrefix := "--"
 
     options := list()
-    arguments := list()
-    lookup := Map()
+    positionals := list()
+    lookup := Map clone
 
     init := method (
-        f := File clone setPath(System args at(0))
+        arg0 := System args at(0)
+        f := File clone
+        // this allows the parser to work in the interpreter
+        if (arg0, f setPath(System args at(0)))
         self prog := f baseName
-        self argv := System args slice(1) clone
+        // pre-process args to split '--long=xxx' into two args
+        self argv := list()
+        System args exSlice(1) foreach(a,
+            if (a containsSeq("=")) then (
+                idx := a findSeq("=")
+                self argv append(a exSlice(0, idx))
+                self argv append(a exSlice(idx+1))
+            ) else (
+                self argv append(a)
+            )
+        )
     )
 
     Argument := Object clone
@@ -45,11 +35,8 @@ ArgParser do (
         self name := nil
         self help := nil
     )
-    Argument asString := method (
-        "<#{name}>" interpolate
-    )
 
-    Option := Object clone
+    Option := Argument clone
     Option init := method (
         self short := nil
         self long := nil
@@ -58,15 +45,15 @@ ArgParser do (
 
     BoolOption := Option clone
     NumericOption := Option clone
+    StringOption := Option clone
 
-    debug := method (msg,
-        msg println
-    )
+    /* debug := method (msg, "DEBUG: #{msg}" interpolate println) */
+    debug := method ()
 
     setDescription := method (desc, self desc = desc)
     setOptionPrefix := method (sP, lP, self shortPrefix = sP; self longPrefix = lP)
 
-    makeOpt := method (opt, args,
+    _addopt := method (opt, args,
         count := args size
         if (count < 2,
             Exception clone raise ("Error: Must specify at least a short or long name and help message")
@@ -75,37 +62,38 @@ ArgParser do (
         opt help = args at(-1)
         arg0 := args at(0)
         if (count < 3,
-            if (arg0 size > 1, opt long = arg0, opt short = arg0),
+            if (arg0 size > 1,
+                opt long = arg0
+                opt name = opt long,
+            // else
+                opt short = arg0
+                opt name = opt short),
         // else
             opt short = arg0
             opt long = args at(1)
+            opt name = opt long
+            self lookup atPut(opt short, opt)
         )
+
+        self lookup atPut(opt name, opt)
+        self options append(opt)
 
         return opt
     )
 
     addOption := method (x, help,
-        opt := Option clone
-        args := call evalArgs
-        opt = makeOpt(opt, args)
+        opt := _addopt(StringOption clone, call evalArgs)
         debug("Added option: #{opt short} #{opt long} #{opt help}" interpolate)
-        self options append(opt)
     )
 
     addBoolOption := method (x, help,
-        opt := BoolOption clone
-        args := call evalArgs
-        opt = makeOpt(opt, args)
+        opt := _addopt(BoolOption clone, call evalArgs)
         debug("Added bool option: #{opt short} #{opt long} #{opt help}" interpolate)
-        self options append(opt)
     )
 
     addNumericOption := method (x, help,
-        opt := NumericOption clone
-        args := call evalArgs
-        opt = makeOpt(opt, args)
+        opt := _addopt(NumericOption clone, call evalArgs)
         debug("Added numeric option: #{opt short} #{opt long} #{opt help}" interpolate)
-        self options append(opt)
     )
 
     addArgument := method (name, help,
@@ -113,12 +101,12 @@ ArgParser do (
         arg name = name
         arg help = help
         debug("Added positional argument: #{name} #{help}" interpolate)
-        self arguments append(arg)
+        self positionals append(arg)
     )
 
     printUsage := method (
         "usage: #{prog} " interpolate print
-        arguments foreach (p, "#{p} " interpolate print)
+        positionals foreach (p, "#{p name} " interpolate print)
         "" println
         "  #{desc}" interpolate println
         "" println
@@ -139,12 +127,47 @@ ArgParser do (
     parseArgs := method (
         values := Map clone
         parsingPositionals := false
-        posCount := 0
+        positionalCount := 0
         argi := 0
         while (argi < argv size,
-            argstring := argv at(argi)
+            cur := argv at(argi)
+            if (cur beginsWithSeq(shortPrefix) or cur beginsWithSeq(longPrefix)) then (
+                debug("parsing option #{cur}" interpolate)
+                prefix := if (cur beginsWithSeq(shortPrefix), shortPrefix, longPrefix)
+                if (parsingPositionals,
+                    Exception clone raise ("Error: Found option after positional argument" interpolate)
+                )
+                stripped := cur asMutable lstrip(prefix)
+                if (lookup hasKey(stripped)) then (
+                    opt := lookup at(stripped)
+                    if (opt isKindOf(BoolOption)) then (
+                        values atPut(opt name, true)
+                    ) else (
+                        argi = argi + 1
+                        cur = argv at(argi)
+                        if (opt isKindOf(NumericOption)) then (
+                            values atPut(opt name, cur asNumber)
+                        ) else (
+                            values atPut(opt name, cur)
+                        )
+                    )
+                ) else (
+                    Exception clone raise ("Error: Invalid option '#{cur}'" interpolate)
+                )
+            ) else (
+                debug("parsing positional argument #{cur}" interpolate)
+                parsingPositionals = true
+                arg := positionals at(positionalCount)
+                values atPut(arg name, cur)
+                positionalCount = positionalCount + 1
+            )
             argi = argi + 1
         )
+
+        if (positionalCount != positionals size,
+            Exception clone raise ("Error: Missing positional arguments")
+        )
+
         return values
     )
 )

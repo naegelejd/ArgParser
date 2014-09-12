@@ -50,6 +50,7 @@ Example:
     parser setOptionPrefix("/", "/")
 
 </dd>
+</dl>
 
 ### Options
 
@@ -59,6 +60,7 @@ The format supplied to each `addOption` method should be one of the following:
 - a *long* option string
 - both a *short* and *long* option string
 
+<dl>
 <dt>`addBoolOption (format, help string)`</dt>
 <dd>
 Add a boolean option. All boolean options default to `false`.
@@ -94,12 +96,14 @@ Examples:
     parser addOption ("url", "base URL")
 
 </dd>
+</dl>
 
 ### Arguments
 
 Positional arguments are mandatory parameters to the program.
 They can only appear after all other options.
 
+<dl>
 <dt>`addArgument (name, help string)`</dt>
 <dd>
 Add a positional argument.

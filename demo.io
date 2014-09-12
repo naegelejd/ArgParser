@@ -9,7 +9,7 @@ parser addOption("o", "output", "output filename")
 parser addNumericOption("c", "repetition count")
 parser addArgument("filename", "input filename")
 
-parser printUsage
-
 args := parser parseArgs
 args foreach(name, val, "#{name}: #{val}" interpolate println)
+
+if (args at("help"), parser printUsage)
