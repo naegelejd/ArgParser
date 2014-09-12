@@ -8,49 +8,39 @@ See `demo.io` for an example.
 
 ### Parser
 
-<dl>
+`setDescription (desc)`
 
-<dt>`setDescription (desc)`</dt>
-<dd>
-Set the description of the program containing the `ArgParser`.
+>   Set the description of the program containing the `ArgParser`.
 
-Example:
+>   Example:
 
-    parser setDescription("a simple command-line tool")
+>       parser setDescription("a simple command-line tool")
 
-</dd>
+`printUsage`
 
-<dt>`printUsage`</dt>
-<dd>
-Print the command line usage. The usage is an abbreviated form of the help doc.
+>   Print the command line usage. The usage is an abbreviated form of the help doc.
 
-Example:
+>   Example:
 
-    parser printUsage
-</dd>
+>       parser printUsage
 
-<dt>`parseArgs`</dt>
-<dd>
-Parse arguments supplied on the command line.
-Returns a `Map` of options/names to their values.
+`parseArgs`
 
-Example:
+>   Parse arguments supplied on the command line.
+>   Returns a `Map` of options/names to their values.
 
-    args := parser parseArgs
+>   Example:
 
-</dd>
+>       args := parser parseArgs
 
-<dt>`setOptionPrefix (shortPrefix, longPrefix)`</dt>
-<dd>
-Change the prefix char for options.
-The default short and long prefixes are "-" and "--", respectively.
+`setOptionPrefix (shortPrefix, longPrefix)`
 
-Example:
+>   Change the prefix char for options.
+>   The default short and long prefixes are "-" and "--", respectively.
 
-    parser setOptionPrefix("/", "/")
+>   Example:
 
-</dd>
-</dl>
+>       parser setOptionPrefix("/", "/")
 
 ### Options
 
@@ -60,57 +50,47 @@ The format supplied to each `addOption` method should be one of the following:
 - a *long* option string
 - both a *short* and *long* option string
 
-<dl>
-<dt>`addBoolOption (format, help string)`</dt>
-<dd>
-Add a boolean option. All boolean options default to `false`.
+`addBoolOption (format, help string)`
 
-Examples:
+>   Add a boolean option. All boolean options default to `false`.
 
-    parser addBoolOption ("v", "verbose")
-    parser addBoolOption ("r", "reverse", "reverse mode")
-    parser addBoolOption ("standalone", "standalone mode")
+>   Examples:
 
-</dd>
+>       parser addBoolOption ("v", "verbose")
+>       parser addBoolOption ("r", "reverse", "reverse mode")
+>       parser addBoolOption ("standalone", "standalone mode")
 
-<dt>`addNumericOption (format, help string)`</dt>
-<dd>
-Add a numeric option. All numeric options default to `0`.
+`addNumericOption (format, help string)`
 
-Examples:
+>   Add a numeric option. All numeric options default to `0`.
 
-    parser addNumericOption ("c", "count")
-    parser addNumericOption ("r", "repetitions", "number of repetitions")
-    parser addNumericOption ("size", "size in inches")
+>   Examples:
 
-</dd>
+>       parser addNumericOption ("c", "count")
+>       parser addNumericOption ("r", "repetitions", "number of repetitions")
+>       parser addNumericOption ("size", "size in inches")
 
-<dt>`addOption (format, help string)`</dt>
-<dd>
-Add a numeric option. All numeric options default to `0`.
+`addOption (format, help string)`
 
-Examples:
+>   Add a numeric option. All numeric options default to `0`.
 
-    parser addOption ("i", "input filename")
-    parser addOption ("o", "output", "output filename")
-    parser addOption ("url", "base URL")
+>   Examples:
 
-</dd>
-</dl>
+>       parser addOption ("i", "input filename")
+>       parser addOption ("o", "output", "output filename")
+>       parser addOption ("url", "base URL")
 
 ### Arguments
 
 Positional arguments are mandatory parameters to the program.
 They can only appear after all other options.
 
-<dl>
-<dt>`addArgument (name, help string)`</dt>
-<dd>
-Add a positional argument.
 
-Example:
+`addArgument (name, help string)`
 
-    parser addArgument ("input", "input filename")
+>   Add a positional argument.
 
-</dd>
-</dl>
+>   Example:
+
+>       parser addArgument ("input", "input filename")
+
